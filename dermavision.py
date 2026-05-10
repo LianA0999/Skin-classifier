@@ -64,15 +64,17 @@ footer { display: none; }
 .disclaimer p { margin: 0; color: #2E6B35; font-size: 0.88rem; line-height: 1.7; }
 .team-card { background: #ffffff; border: 1px solid #E0EDD8; border-radius: 16px; padding: 2rem; text-align: center; box-shadow: 0 2px 12px rgba(0,0,0,0.04); transition: all 0.2s; }
 .team-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(76,175,80,0.12); border-color: #A5D6A7; }
-.team-avatar { width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #4CAF50, #8BC34A); display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 1rem; }
+.team-avatar { width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #4CAF50, #8BC34A); display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 1rem; font-weight: 800; color: white; }
 .team-name { font-size: 1.1rem; font-weight: 800; color: #1B5E20; margin-bottom: 0.2rem; }
 .team-role { font-size: 0.85rem; font-weight: 600; color: #4CAF50; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.06em; }
 .team-bio { font-size: 0.88rem; color: #666; line-height: 1.6; margin-bottom: 1rem; }
 .team-contact { font-size: 0.82rem; color: #888; border-top: 1px solid #F0F0F0; padding-top: 0.8rem; margin-top: 0.5rem; }
+.inferred-box { background: #F1F8F1; border: 1px solid #C8E6C9; border-radius: 10px; padding: 0.8rem 1.2rem; margin-bottom: 1rem; font-size: 0.88rem; color: #2E6B35; }
 </style>
 """
 st.markdown(CSS, unsafe_allow_html=True)
 
+# ── Model ──────────────────────────────────────────────────────────────────────
 CLASS_NAMES = ['acne', 'dark_spots', 'dry', 'normal', 'oily', 'redness', 'wrinkles']
 
 @st.cache_resource(show_spinner=False)
@@ -92,6 +94,7 @@ def load_model():
 
 model, class_names, model_loaded = load_model()
 
+# ── CSV ────────────────────────────────────────────────────────────────────────
 @st.cache_data(show_spinner=False)
 def load_rec_data():
     if os.path.exists("dataset-4.csv"):
@@ -100,11 +103,28 @@ def load_rec_data():
 
 rec_df = load_rec_data()
 
+# ── Maps: model condition → CSV columns ───────────────────────────────────────
 CONCERN_MAP = {
-    "acne": "Acne", "dark_spots": "Dark Spots", "dry": "Dullness",
-    "normal": "Open Pores", "oily": "Acne", "redness": "Hyperpigmentation", "wrinkles": "Dark Circles",
+    "acne":       "Acne",
+    "dark_spots": "Dark Spots",
+    "dry":        "Dullness",
+    "normal":     "Open Pores",
+    "oily":       "Acne",
+    "redness":    "Redness",
+    "wrinkles":   "Wrinkles",
 }
 
+SKIN_TYPE_MAP = {
+    "oily":       "Oily",
+    "acne":       "Oily",
+    "dry":        "Dry",
+    "redness":    "Sensitive",
+    "dark_spots": "Normal",
+    "wrinkles":   "Normal",
+    "normal":     "Normal",
+}
+
+# ── Helpers ────────────────────────────────────────────────────────────────────
 def predict(img):
     if model_loaded and model is not None:
         try:
@@ -139,23 +159,45 @@ def is_blurry(img, threshold=80):
 def get_recommendation(condition, age_group, sensitivity):
     if rec_df is None:
         return None
-    concern = CONCERN_MAP.get(condition.lower(), condition)
+
+    concern   = CONCERN_MAP.get(condition.lower(), condition)
+    skin_type = SKIN_TYPE_MAP.get(condition.lower(), "Normal")
+
+    # Try full match: concern + skin type + age + sensitivity
     match = rec_df[
         (rec_df["Concern"].str.lower() == concern.lower()) &
+        (rec_df["Skin_Type"].str.lower() == skin_type.lower()) &
         (rec_df["Age_Group"] == age_group) &
         (rec_df["Sensitivity"] == sensitivity)
     ]
+    # Fallback: drop sensitivity
     if match.empty:
-        match = rec_df[(rec_df["Concern"].str.lower() == concern.lower()) & (rec_df["Age_Group"] == age_group)]
+        match = rec_df[
+            (rec_df["Concern"].str.lower() == concern.lower()) &
+            (rec_df["Skin_Type"].str.lower() == skin_type.lower()) &
+            (rec_df["Age_Group"] == age_group)
+        ]
+    # Fallback: concern + skin type only
+    if match.empty:
+        match = rec_df[
+            (rec_df["Concern"].str.lower() == concern.lower()) &
+            (rec_df["Skin_Type"].str.lower() == skin_type.lower())
+        ]
+    # Last fallback: concern only
     if match.empty:
         match = rec_df[rec_df["Concern"].str.lower() == concern.lower()]
+
     if match.empty:
         return None
+
     row = match.iloc[0]
     return {
-        "concern": row.get("Concern",""), "internal_type": row.get("Internal_Type",""),
-        "ingredients": row.get("Ingredients",""), "concentrations": row.get("Concentrations",""),
-        "effects": row.get("Effects",""),
+        "concern":        row.get("Concern", ""),
+        "skin_type":      row.get("Skin_Type", ""),
+        "internal_type":  row.get("Internal_Type", ""),
+        "ingredients":    row.get("Ingredients", ""),
+        "concentrations": row.get("Concentrations", ""),
+        "effects":        row.get("Effects", ""),
     }
 
 def sev(pct):
@@ -166,6 +208,7 @@ def sev(pct):
 def fmt(label):
     return label.replace("_", " ").title()
 
+# ── Session state ──────────────────────────────────────────────────────────────
 for k, v in {
     "page": "home", "img": None, "face_found": False,
     "input_method": "upload", "age_group": "19-25", "sensitivity": "No"
@@ -181,7 +224,7 @@ if _qp in ("home", "analyse", "about", "capture") and st.session_state.page != _
 if _qm in ("camera", "upload") and st.session_state.input_method != _qm:
     st.session_state.input_method = _qm
 
-# ── Navbar (position:fixed so it always works regardless of Streamlit DOM) ──
+# ── Navbar ─────────────────────────────────────────────────────────────────────
 def _nav_link(label, target, current):
     active = current == target
     bg = "#F1F8F1" if active else "transparent"
@@ -234,8 +277,8 @@ if st.session_state.page == "home":
     st.markdown("<div class='section-heading'>What We Detect</div>", unsafe_allow_html=True)
     st.markdown("<p class='section-sub'>Our model is trained to identify these skin conditions.</p>", unsafe_allow_html=True)
     c1, c2 = st.columns(2)
-    for name in ["Acne","Oiliness","Dryness","Dark Spots","Redness","Wrinkles","Normal Skin"]:
-        with c1 if ["Acne","Oiliness","Dryness","Dark Spots","Redness","Wrinkles","Normal Skin"].index(name) % 2 == 0 else c2:
+    for i, name in enumerate(["Acne","Oiliness","Dryness","Dark Spots","Redness","Wrinkles","Normal Skin"]):
+        with c1 if i % 2 == 0 else c2:
             st.markdown(f"<div style='background:#fff;border:1px solid #E0EDD8;border-radius:10px;padding:0.8rem 1rem;margin-bottom:0.7rem;'><span style='font-weight:600;color:#3D3D3D;font-size:0.92rem;'>{name}</span></div>", unsafe_allow_html=True)
     st.markdown("<div class='divider'></div>", unsafe_allow_html=True)
     st.markdown("<div class='disclaimer'><p><strong>Disclaimer:</strong> DermaVision is an educational tool and is not a substitute for professional medical advice. Always consult a qualified dermatologist for clinical diagnosis and personalised treatment plans.</p></div>", unsafe_allow_html=True)
@@ -271,6 +314,7 @@ elif st.session_state.page == "analyse":
         st.markdown("<a href='?p=capture&m=camera' style='text-decoration:none;display:block;'><div class='input-card'><div class='input-card-icon'>📷</div><div class='input-card-title'>Live Camera</div><div class='input-card-sub'>Take a photo using your device camera</div></div></a>", unsafe_allow_html=True)
     with c2:
         st.markdown("<a href='?p=capture&m=upload' style='text-decoration:none;display:block;'><div class='input-card'><div class='input-card-icon'>🖼️</div><div class='input-card-title'>Upload Photo</div><div class='input-card-sub'>Select an existing image from your device</div></div></a>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # CAPTURE
@@ -325,7 +369,13 @@ elif st.session_state.page == "result":
     st.markdown("</div>", unsafe_allow_html=True)
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown("<div class='section-heading'>Your Results</div>", unsafe_allow_html=True)
-    st.markdown(f"<div style='background:#F1F8F1;border:1px solid #C8E6C9;border-radius:10px;padding:0.8rem 1.2rem;margin-bottom:1.5rem;font-size:0.88rem;color:#2E6B35;'><strong>Age:</strong> {st.session_state.age_group} &nbsp;|&nbsp; <strong>Sensitive skin:</strong> {st.session_state.sensitivity}</div>", unsafe_allow_html=True)
+    st.markdown(
+        f"<div style='background:#F1F8F1;border:1px solid #C8E6C9;border-radius:10px;"
+        f"padding:0.8rem 1.2rem;margin-bottom:1.5rem;font-size:0.88rem;color:#2E6B35;'>"
+        f"<strong>Age:</strong> {st.session_state.age_group} &nbsp;|&nbsp; "
+        f"<strong>Sensitive skin:</strong> {st.session_state.sensitivity}</div>",
+        unsafe_allow_html=True
+    )
     c1, c2 = st.columns([1, 1.3])
     with c1:
         if st.session_state.img:
@@ -335,17 +385,57 @@ elif st.session_state.page == "result":
         if not st.session_state.face_found:
             st.markdown("<div class='no-face-box'><p>⚠️ No face detected.<br><br>Please upload a clear, front-facing photo with good lighting.</p></div>", unsafe_allow_html=True)
         else:
-            preds = predict(st.session_state.img)
+            preds     = predict(st.session_state.img)
             top_label = preds[0][0]
+            top_pct   = preds[0][1]
+
+            # Infer skin type from top condition
+            inferred_skin_type = SKIN_TYPE_MAP.get(top_label, "Normal")
+
+            # Show AI inference summary
+            st.markdown(
+                f"<div class='inferred-box'>"
+                f"🤖 <strong>AI detected:</strong> {fmt(top_label)} ({top_pct:.0f}%) "
+                f"&nbsp;|&nbsp; "
+                f"<strong>Inferred skin type:</strong> {inferred_skin_type}"
+                f"</div>",
+                unsafe_allow_html=True
+            )
+
             st.markdown("<h3 style='color:#2E6B35;margin-bottom:0.5rem;'>Skin Conditions Detected</h3>", unsafe_allow_html=True)
             for label, pct in preds[:5]:
-                st.markdown(f"<div class='condition-row'><div class='condition-header'><span class='condition-name'>{fmt(label)}</span><span class='condition-pct {sev(pct)}'>{pct:.0f}%</span></div></div>", unsafe_allow_html=True)
+                st.markdown(
+                    f"<div class='condition-row'><div class='condition-header'>"
+                    f"<span class='condition-name'>{fmt(label)}</span>"
+                    f"<span class='condition-pct {sev(pct)}'>{pct:.0f}%</span>"
+                    f"</div></div>",
+                    unsafe_allow_html=True
+                )
                 st.progress(int(pct))
+
+            # Recommendation using inferred skin type from model
             rec = get_recommendation(top_label, st.session_state.age_group, st.session_state.sensitivity)
             if rec:
-                st.markdown(f"<div class='rec-box'><div class='rec-title'>Personalised Recommendation</div><div class='rec-row'><span class='rec-label'>Concern:</span><span>{rec['concern']}</span></div><div class='rec-row'><span class='rec-label'>Type:</span><span>{rec['internal_type']}</span></div><div class='rec-row'><span class='rec-label'>Ingredients:</span><span>{rec['ingredients']}</span></div><div class='rec-row'><span class='rec-label'>Concentrations:</span><span>{rec['concentrations']}</span></div><div class='rec-row'><span class='rec-label'>Effects:</span><span>{rec['effects']}</span></div></div>", unsafe_allow_html=True)
+                st.markdown(
+                    f"<div class='rec-box'>"
+                    f"<div class='rec-title'>💡 Personalised Recommendation</div>"
+                    f"<div class='rec-row'><span class='rec-label'>Concern:</span><span>{rec['concern']}</span></div>"
+                    f"<div class='rec-row'><span class='rec-label'>Skin Type:</span><span>{rec['skin_type']}</span></div>"
+                    f"<div class='rec-row'><span class='rec-label'>Type:</span><span>{rec['internal_type']}</span></div>"
+                    f"<div class='rec-row'><span class='rec-label'>Ingredients:</span><span>{rec['ingredients']}</span></div>"
+                    f"<div class='rec-row'><span class='rec-label'>Concentrations:</span><span>{rec['concentrations']}</span></div>"
+                    f"<div class='rec-row'><span class='rec-label'>Effects:</span><span>{rec['effects']}</span></div>"
+                    f"</div>",
+                    unsafe_allow_html=True
+                )
             else:
-                st.markdown(f"<div style='background:#F9FBF7;border:1px solid #E0EDD8;border-radius:12px;padding:1.2rem 1.4rem;margin-top:1.2rem;font-size:0.88rem;color:#666;'>No specific recommendation found for <strong>{fmt(top_label)}</strong>.</div>", unsafe_allow_html=True)
+                st.markdown(
+                    f"<div style='background:#F9FBF7;border:1px solid #E0EDD8;border-radius:12px;"
+                    f"padding:1.2rem 1.4rem;margin-top:1.2rem;font-size:0.88rem;color:#666;'>"
+                    f"No specific recommendation found for <strong>{fmt(top_label)}</strong>.</div>",
+                    unsafe_allow_html=True
+                )
+
     st.markdown("<br>", unsafe_allow_html=True)
     if st.button("🔄  Analyse Another Photo", key="retry"):
         st.session_state.page = "analyse"; st.session_state.img = None; st.query_params.clear(); st.rerun()

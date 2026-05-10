@@ -1,0 +1,13 @@
+{
+  "img_size": 128,
+  "classes": [
+    "acne",
+    "dark_spots",
+    "dry",
+    "normal",
+    "oily",
+    "redness",
+    "wrinkles"
+  ],
+  "num_classes": 7
+}

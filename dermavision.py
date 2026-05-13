@@ -207,13 +207,15 @@ st.markdown(f"""
 # HOME
 # ══════════════════════════════════════════════════════════════════════════════
 if st.session_state.page == "home":
-    st.markdown("""
-    <div class="hero">
-        <h1>AI-Powered <span>Skin Analysis</span> & Condition Detection</h1>
-        <a href="?p=analyse" class="hero-btn">Start Analysis</a>
-        <div class="hero-trust">No account needed &nbsp;·&nbsp; Your photos are never stored</div>
-    </div>
-    """, unsafe_allow_html=True)
+st.markdown("""
+<div class="hero" style="text-align:center;">
+    <h1>Free AI <span>Skin Analysis</span> Tool &amp; Skin Type Detector</h1>
+    <p class="hero-sub" style="text-align:center; display:block; margin:0 auto; max-width:600px;">
+        Upload a photo of your face and our AI will detect your skin condition and give you personalised ingredient recommendations — all in seconds, completely free.
+    </p>
+    <div class="hero-trust">No account needed &nbsp;·&nbsp; Your photos are never stored</div>
+</div>
+""", unsafe_allow_html=True)
 
     st.markdown("<div class='page-content'>", unsafe_allow_html=True)
     st.markdown("<div class='divider'></div>", unsafe_allow_html=True)

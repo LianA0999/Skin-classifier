@@ -203,10 +203,9 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# ══════════════════════════════════════════════════════════════════════════════
-# HOME
-# ══════════════════════════════════════════════════════════════════════════════
-# HOME
+
+#HOME PAGE 
+
 if st.session_state.page == "home":
     st.markdown("""
     <div class="hero" style="text-align:center;">
@@ -217,13 +216,13 @@ if st.session_state.page == "home":
         <div class="hero-trust">No account needed &nbsp;·&nbsp; Your photos are never stored</div>
     </div>
     """, unsafe_allow_html=True)
-        _, hero_cta, _ = st.columns([3, 2, 3])
+
+    _, hero_cta, _ = st.columns([3, 2, 3])
     with hero_cta:
         if st.button("Start Free Analysis", key="hero_cta"):
             st.session_state.page = "analyse"
             st.rerun()
-
-
+            
     st.markdown("<div class='page-content'>", unsafe_allow_html=True)
     st.markdown("<div class='divider'></div>", unsafe_allow_html=True)
     st.markdown("<div class='section-heading'>How It Works</div>", unsafe_allow_html=True)

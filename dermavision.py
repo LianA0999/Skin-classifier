@@ -252,7 +252,6 @@ elif st.session_state.page == "analyse":
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown("<div class='section-heading'>Your Skin Profile</div>", unsafe_allow_html=True)
     st.markdown("<p class='section-sub'>Tell us a little about yourself to personalise your recommendations.</p>", unsafe_allow_html=True)
-    st.markdown("<div class='profile-box'>", unsafe_allow_html=True)
     c1, c2 = st.columns(2)
     with c1:
         ag = st.selectbox("Age Group", ["14-18","19-25","26-35","36-45","46-55","55+"],

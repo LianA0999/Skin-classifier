@@ -110,7 +110,7 @@ def predict(img):
     if model_loaded and model is not None:
         try:
             from tensorflow.keras.applications.efficientnet import preprocess_input
-            arr = np.array(img.convert("RGB").resize((224, 224)), dtype=np.float32)
+            arr = np.array(img.convert("RGB").resize((300, 300)), dtype=np.float32)
             arr = preprocess_input(arr[np.newaxis])
             probs = model.predict(arr, verbose=0)[0]
             return sorted(zip(class_names, (probs * 100).tolist()), key=lambda x: -x[1])

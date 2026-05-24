@@ -17,17 +17,17 @@ CSS = """
 [data-testid="stToolbar"] { display: none; }
 footer { display: none; }
 .block-container { padding: 72px 0 2rem !important; max-width: 1200px !important; margin: 0 auto !important; }
-.hero { text-align: center; padding: 6rem 2rem 5rem; background: #ffffff; }
+.hero { display: flex; flex-direction: column; align-items: center; padding: 3.5rem 2rem 3rem; background: #ffffff; }
 .hero h1 { font-size: clamp(2.2rem, 4vw, 3.2rem); font-weight: 800; color: #111111 !important; line-height: 1.15; margin-bottom: 1.2rem; max-width: 700px; margin-left: auto; margin-right: auto; letter-spacing: -0.02em; }
 .hero h1 span { color: #2E6B35 !important; }
 .hero-sub { font-size: 1rem; color: #777; max-width: 480px; margin: 0 auto; line-height: 1.75; text-align: center !important; }
-.hero-btn { display: inline-block; background: #2E6B35; color: white !important; padding: 0.8rem 2.4rem; border-radius: 8px; font-weight: 700; font-size: 0.92rem; text-decoration: none !important; margin: 0.8rem 0 1rem; font-family: 'Nunito', sans-serif; transition: background 0.2s; }
+.hero-btn { display: block; width: fit-content; background: #2E6B35; color: white !important; padding: 0.8rem 2.4rem; border-radius: 8px; font-weight: 700; font-size: 0.92rem; text-decoration: none !important; margin: 0.8rem auto 1rem; font-family: 'Nunito', sans-serif; transition: background 0.2s; }
 .hero-btn:hover { background: #1B5E20; }
 .hero-trust { font-size: 0.8rem; color: #bbb; margin-top: 0.3rem; letter-spacing: 0.01em; }
-.page-content { max-width: 860px; margin: 0 auto; padding: 3rem 2rem; }
+.page-content { max-width: 860px; margin: 0 auto; padding: 2rem 2rem; }
 .section-heading { font-size: 1.35rem; font-weight: 700; color: #111; margin-bottom: 0.3rem; letter-spacing: -0.01em; }
 .section-sub { color: #999; font-size: 0.9rem; margin-bottom: 1.8rem; }
-.divider { height: 1px; background: #f0f0f0; margin: 2.5rem 0; }
+.divider { height: 1px; background: #f0f0f0; margin: 1.5rem 0; }
 .feature-item { background: #ffffff; padding: 1.2rem 0; border-bottom: 1px solid #f5f5f5; margin-bottom: 0; display: flex; align-items: flex-start; gap: 1.2rem; border-radius: 0; border: none; }
 .feature-item:last-child { border-bottom: none; }
 .feature-icon { font-size: 0.75rem; font-weight: 800; color: #2E6B35; margin-top: 5px; min-width: 20px; background: #F1F8F1; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
@@ -233,7 +233,6 @@ st.markdown(f"""
   <div style="font-size:1.25rem;font-weight:800;color:#2E6B35;flex:1;">DermaVision</div>
   {_nav_link("Home","home",_page)}
   {_nav_link("Analysis","analyse",_page)}
-  {_nav_link("About Us","about",_page)}
 </div>
 """, unsafe_allow_html=True)
 
@@ -242,21 +241,12 @@ st.markdown(f"""
 # ══════════════════════════════════════════════════════════════════════════════
 if st.session_state.page == "home":
     st.markdown("""
-    <div class="hero" style="text-align:center;">
-        <h1>Free AI <span>Skin Analysis</span> Tool &amp; Skin Type Detector</h1>
-        <p class="hero-sub" style="text-align:center; display:block; margin:0 auto; max-width:600px;">
-            Upload a photo of your face and our AI will detect your skin condition and give you
-            personalised ingredient recommendations — all in seconds, completely free.
-        </p>
+    <div class="hero">
+        <h1 style="text-align:center;">AI-Powered <span>Skin Analysis</span> &amp; Condition Detection</h1>
+        <a href="?p=analyse" class="hero-btn">Start Analysis</a>
         <div class="hero-trust">No account needed &nbsp;·&nbsp; Your photos are never stored</div>
     </div>
     """, unsafe_allow_html=True)
-
-    _, hero_cta, _ = st.columns([3, 2, 3])
-    with hero_cta:
-        if st.button("Start Free Analysis", key="hero_cta"):
-            st.session_state.page = "analyse"
-            st.rerun()
 
     st.markdown("<div class='page-content'>", unsafe_allow_html=True)
     st.markdown("<div class='divider'></div>", unsafe_allow_html=True)
@@ -404,41 +394,3 @@ elif st.session_state.page == "result":
         st.session_state.page = "analyse"; st.session_state.img = None; st.query_params.clear(); st.rerun()
     st.markdown("</div>", unsafe_allow_html=True)
 
-# ══════════════════════════════════════════════════════════════════════════════
-# ABOUT US
-# ══════════════════════════════════════════════════════════════════════════════
-elif st.session_state.page == "about":
-    st.markdown("<div class='page-content'>", unsafe_allow_html=True)
-    st.markdown("""
-    <div style='text-align:center; padding:3rem 0 2rem;'>
-        <div class='hero-badge'>Meet The Team</div>
-        <h1 style='font-size:2.8rem; font-weight:900; color:#1B5E20; margin-bottom:1rem;'>The Visionaries</h1>
-        <p style='font-size:1.05rem; color:#666; max-width:600px; margin:0 auto; line-height:1.7;'>
-            The Visionaries is a small team of AI specialists passionate about making
-            dermatology accessible to everyone. Founded by L, A, and M, we combine
-            deep learning expertise with a commitment to skin health innovation.
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
-    st.markdown("<div class='divider'></div>", unsafe_allow_html=True)
-    st.markdown("<div class='section-heading' style='text-align:center;'>Our Team</div>", unsafe_allow_html=True)
-    st.markdown("<p class='section-sub' style='text-align:center;'>The people behind DermaVision.</p>", unsafe_allow_html=True)
-    st.markdown("<br>", unsafe_allow_html=True)
-    c1, c2, c3 = st.columns(3)
-    with c1:
-        st.markdown("<div class='team-card'><div class='team-avatar'>M</div><div class='team-name'>Muhammad</div><div class='team-role'>AI Engineer</div><div class='team-bio'>Specialises in deep learning and computer vision. Led the model training and dataset pipeline for DermaVision.</div><div class='team-contact'>m@email.com</div></div>", unsafe_allow_html=True)
-    with c2:
-        st.markdown("<div class='team-card'><div class='team-avatar'>L</div><div class='team-name'>Lian</div><div class='team-role'>Data Scientist</div><div class='team-bio'>Focused on data collection, cleaning, and analysis. Curated the skin condition datasets used to train the model.</div><div class='team-contact'>l@email.com</div></div>", unsafe_allow_html=True)
-    with c3:
-        st.markdown("<div class='team-card'><div class='team-avatar'>P</div><div class='team-name'>Pichaya</div><div class='team-role'>Frontend Developer</div><div class='team-bio'>Designed and built the DermaVision interface. Focused on creating a clean, accessible user experience.</div><div class='team-contact'>p@email.com</div></div>", unsafe_allow_html=True)
-    st.markdown("<div class='divider'></div>", unsafe_allow_html=True)
-    st.markdown("""
-    <div style='background:#E8F5E9; border-radius:16px; padding:2.5rem; text-align:center; border:1px solid #C8E6C9;'>
-        <h3 style='color:#1B5E20; font-weight:800; margin-bottom:0.8rem;'>Our Mission</h3>
-        <p style='color:#2E6B35; font-size:0.95rem; max-width:500px; margin:0 auto; line-height:1.7;'>
-            To make personalised skincare accessible to everyone through the power
-            of artificial intelligence — no expensive consultations required.
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
-    st.markdown("</div>", unsafe_allow_html=True)

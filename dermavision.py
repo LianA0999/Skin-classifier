@@ -101,7 +101,7 @@ def load_rec_data():
 
 rec_df = load_rec_data()
 
-# ── Skin type detection from model prediction percentages ──────────────────
+#Skin type detection from model prediction percentages
 def get_skin_type(preds):
     pred_dict = dict(preds)
     oily_pct   = pred_dict.get('oily', 0)
@@ -116,7 +116,7 @@ def get_skin_type(preds):
         return 'Dry'
     return 'Normal'
 
-# ── Map model class → CSV concern ─────────────────────────────────────────
+#Map model class and the CSV concern
 CONCERN_MAP = {
     "acne":       "Acne",
     "dark_spots": "Dark Spots",
@@ -127,27 +127,27 @@ CONCERN_MAP = {
     "wrinkles":   "Wrinkles",
 }
 
-# ── Recommendation lookup using skin type + concern + age + sensitivity ────
+#Recommendation lookup using (skin type , concern , age , sensitivity)
 def get_recommendation(condition, preds, age_group, sensitivity):
     if rec_df is None:
         return None
     concern   = CONCERN_MAP.get(condition.lower(), condition)
     skin_type = get_skin_type(preds)
 
-    # Full match: concern + skin type + age + sensitivity
+#Full match (concern, skin type, age, sensitivity)
     match = rec_df[
         (rec_df['Concern'].str.lower()   == concern.lower()) &
         (rec_df['Skin_Type'].str.lower() == skin_type.lower()) &
         (rec_df['Age_Group']             == age_group) &
         (rec_df['Sensitivity']           == sensitivity)
     ]
-    # Fall back: concern + skin type
+    #Fall back concern + skin type
     if match.empty:
         match = rec_df[
             (rec_df['Concern'].str.lower()   == concern.lower()) &
             (rec_df['Skin_Type'].str.lower() == skin_type.lower())
         ]
-    # Fall back: concern only
+    #Fall back concern only
     if match.empty:
         match = rec_df[rec_df['Concern'].str.lower() == concern.lower()]
     if match.empty:
@@ -208,7 +208,7 @@ for k, v in {
     if k not in st.session_state:
         st.session_state[k] = v
 
-# Sync query params → session state
+#Sync query params → session state
 _qp = st.query_params.get("p", "")
 _qm = st.query_params.get("m", "")
 if _qp in ("home", "analyse", "about", "capture") and st.session_state.page != _qp:
@@ -216,7 +216,7 @@ if _qp in ("home", "analyse", "about", "capture") and st.session_state.page != _
 if _qm in ("camera", "upload") and st.session_state.input_method != _qm:
     st.session_state.input_method = _qm
 
-# ── Navbar ─────────────────────────────────────────────────────────────────
+#Navbar
 def _nav_link(label, target, current):
     active = current == target
     bg    = "#F1F8F1" if active else "transparent"
@@ -236,9 +236,9 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# ══════════════════════════════════════════════════════════════════════════════
+#------------
 # HOME
-# ══════════════════════════════════════════════════════════════════════════════
+#-----------
 if st.session_state.page == "home":
     st.markdown("""
     <div class="hero">
@@ -273,9 +273,9 @@ if st.session_state.page == "home":
     st.markdown("<p style='font-size:0.82rem;color:#bbb;text-align:center;padding:1rem 0;'>DermaVision is an educational tool and not a substitute for professional medical advice. Always consult a dermatologist for clinical diagnosis.</p>", unsafe_allow_html=True)
     st.markdown("</div>", unsafe_allow_html=True)
 
-# ══════════════════════════════════════════════════════════════════════════════
+#------
 # ANALYSE
-# ══════════════════════════════════════════════════════════════════════════════
+#------
 elif st.session_state.page == "analyse":
     st.markdown("<div class='page-content'>", unsafe_allow_html=True)
     st.markdown("<div class='back-btn'>", unsafe_allow_html=True)
@@ -303,9 +303,9 @@ elif st.session_state.page == "analyse":
     with c2:
         st.markdown("<a href='?p=capture&m=upload' style='text-decoration:none;display:block;'><div class='input-card'><div class='input-card-icon'>🖼️</div><div class='input-card-title'>Upload Photo</div><div class='input-card-sub'>Select an existing image from your device</div></div></a>", unsafe_allow_html=True)
 
-# ══════════════════════════════════════════════════════════════════════════════
+#--------
 # CAPTURE
-# ══════════════════════════════════════════════════════════════════════════════
+#-------
 elif st.session_state.page == "capture":
     st.markdown("<div class='page-content'>", unsafe_allow_html=True)
     st.markdown("<div class='back-btn'>", unsafe_allow_html=True)
@@ -345,9 +345,9 @@ elif st.session_state.page == "capture":
             st.session_state.page = "result"; st.query_params.clear(); st.rerun()
     st.markdown("</div>", unsafe_allow_html=True)
 
-# ══════════════════════════════════════════════════════════════════════════════
+#----------
 # RESULT
-# ══════════════════════════════════════════════════════════════════════════════
+#----------
 elif st.session_state.page == "result":
     st.markdown("<div class='page-content'>", unsafe_allow_html=True)
     st.markdown("<div class='back-btn'>", unsafe_allow_html=True)
@@ -382,8 +382,12 @@ elif st.session_state.page == "result":
                     f"<div class='rec-row'><span class='rec-label'>Concern:</span><span>{rec['concern']}</span></div>"
                     f"<div class='rec-row'><span class='rec-label'>Type:</span><span>{rec['internal_type']}</span></div>"
                     f"<div class='rec-row'><span class='rec-label'>Ingredients:</span><span>{rec['ingredients']}</span></div>"
-                    f"<div class='rec-row'><span class='rec-label'>Concentrations:</span><span>{rec['concentrations']}</span></div>"
                     f"<div class='rec-row'><span class='rec-label'>Effects:</span><span>{rec['effects']}</span></div>"
+                    f"</div>"
+                    f"<div style='background:#FFF8E1;border:1px solid #FFE082;border-left:4px solid #F9A825;"
+                    f"border-radius:10px;padding:0.9rem 1.2rem;margin-top:0.8rem;font-size:0.82rem;color:#B71C1C;line-height:1.6;'>"
+                    f"❗ <strong>Disclaimer:</strong> This is not a personalised medical recommendation but a general suggestion. "
+                    f"For conditions and determining what to use for skin issues, consult a professional dermatologist or doctor to seek the most suitable products."
                     f"</div>",
                     unsafe_allow_html=True
                 )

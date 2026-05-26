@@ -24,7 +24,7 @@ footer { display: none; }
 .hero-btn { display: block; width: fit-content; background: #2E6B35; color: white !important; padding: 0.8rem 2.4rem; border-radius: 8px; font-weight: 700; font-size: 0.92rem; text-decoration: none !important; margin: 0.8rem auto 1rem; font-family: 'Nunito', sans-serif; transition: background 0.2s; }
 .hero-btn:hover { background: #1B5E20; }
 .hero-trust { font-size: 0.8rem; color: #bbb; margin-top: 0.3rem; letter-spacing: 0.01em; }
-.page-content { max-width: 860px; margin: 0 auto; padding: 2rem 2rem; }
+.page-content { max-width: 860px; margin: 0 auto; padding: 1rem 2rem 2rem; }
 .section-heading { font-size: 1.35rem; font-weight: 700; color: #111; margin-bottom: 0.3rem; letter-spacing: -0.01em; }
 .section-sub { color: #999; font-size: 0.9rem; margin-bottom: 1.8rem; }
 .divider { height: 1px; background: #f0f0f0; margin: 1.5rem 0; }
@@ -221,7 +221,7 @@ def _nav_link(label, target, current):
     active = current == target
     bg    = "#F1F8F1" if active else "transparent"
     color = "#2E6B35" if active else "#555"
-    return (f'<a href="?p={target}" style="color:{color};font-weight:600;font-size:0.9rem;'
+    return (f'<a href="?p={target}" target="_self" style="color:{color};font-weight:600;font-size:0.9rem;'
             f'text-decoration:none;padding:0.4rem 0.9rem;border-radius:8px;background:{bg};">{label}</a>')
 
 _page = st.session_state.page
@@ -233,6 +233,7 @@ st.markdown(f"""
   <div style="font-size:1.25rem;font-weight:800;color:#2E6B35;flex:1;">DermaVision</div>
   {_nav_link("Home","home",_page)}
   {_nav_link("Analysis","analyse",_page)}
+  {_nav_link("About Us","about",_page)}
 </div>
 """, unsafe_allow_html=True)
 
@@ -243,7 +244,7 @@ if st.session_state.page == "home":
     st.markdown("""
     <div class="hero">
         <h1 style="text-align:center;">AI-Powered <span>Skin Analysis</span> &amp; Condition Detection</h1>
-        <a href="?p=analyse" class="hero-btn">Start Analysis</a>
+        <a href="?p=analyse" target="_self" class="hero-btn">Start Analysis</a>
         <div class="hero-trust">No account needed &nbsp;·&nbsp; Your photos are never stored</div>
     </div>
     """, unsafe_allow_html=True)
@@ -299,9 +300,9 @@ elif st.session_state.page == "analyse":
     st.markdown("<p class='section-sub'>Click a card below to get started.</p>", unsafe_allow_html=True)
     c1, c2 = st.columns(2)
     with c1:
-        st.markdown("<a href='?p=capture&m=camera' style='text-decoration:none;display:block;'><div class='input-card'><div class='input-card-icon'>📷</div><div class='input-card-title'>Live Camera</div><div class='input-card-sub'>Take a photo using your device camera</div></div></a>", unsafe_allow_html=True)
+        st.markdown("<a href='?p=capture&m=camera' target='_self' style='text-decoration:none;display:block;'><div class='input-card'><div class='input-card-icon'>📷</div><div class='input-card-title'>Live Camera</div><div class='input-card-sub'>Take a photo using your device camera</div></div></a>", unsafe_allow_html=True)
     with c2:
-        st.markdown("<a href='?p=capture&m=upload' style='text-decoration:none;display:block;'><div class='input-card'><div class='input-card-icon'>🖼️</div><div class='input-card-title'>Upload Photo</div><div class='input-card-sub'>Select an existing image from your device</div></div></a>", unsafe_allow_html=True)
+        st.markdown("<a href='?p=capture&m=upload' target='_self' style='text-decoration:none;display:block;'><div class='input-card'><div class='input-card-icon'>🖼️</div><div class='input-card-title'>Upload Photo</div><div class='input-card-sub'>Select an existing image from your device</div></div></a>", unsafe_allow_html=True)
 
 #--------
 # CAPTURE
@@ -398,3 +399,28 @@ elif st.session_state.page == "result":
         st.session_state.page = "analyse"; st.session_state.img = None; st.query_params.clear(); st.rerun()
     st.markdown("</div>", unsafe_allow_html=True)
 
+# ══════════════════════════════════════════════════════════════════════════════
+# ABOUT US
+# ══════════════════════════════════════════════════════════════════════════════
+elif st.session_state.page == "about":
+    st.markdown("<div class='page-content'>", unsafe_allow_html=True)
+    st.markdown("""
+    <div style='padding:3rem 0 2rem; text-align:center;'>
+        <h1 style='font-size:2.4rem; font-weight:800; color:#1B5E20; margin-bottom:0.8rem; letter-spacing:-0.02em;'>The Visionaries</h1>
+        <p style='font-size:1rem; color:#777; max-width:520px; margin:0 auto; line-height:1.7;'>
+            A team of students from UTS passionate about making dermatology accessible through AI.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+    st.markdown("<div class='divider'></div>", unsafe_allow_html=True)
+    st.markdown("<div class='section-heading'>Our Team</div>", unsafe_allow_html=True)
+    st.markdown("<p class='section-sub'>The people behind DermaVision.</p>", unsafe_allow_html=True)
+    st.markdown("<br>", unsafe_allow_html=True)
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        st.markdown("<div class='team-card'><div class='team-avatar'>M</div><div class='team-name'>Muhammad Hashim</div><div class='team-bio'>small intro ab urself.</div><div class='team-contact'>muhammad.hashim-1@student.uts.edu.au</div></div>", unsafe_allow_html=True)
+    with c2:
+        st.markdown("<div class='team-card'><div class='team-avatar'>L</div><div class='team-name'>Lian Alaslani</div><div class='team-bio'>small intro ab urself.</div><div class='team-contact'>lian.m.alaslani-1@student.uts.edu.au</div></div>", unsafe_allow_html=True)
+    with c3:
+        st.markdown("<div class='team-card'><div class='team-avatar'>P</div><div class='team-name'>Pichaya Viwatassawin</div><div class='team-bio'>I am Pichaya, but you can call me Aya. I am currently a student studying Bachelor of Artificial Intelligence in the University of Technology Sydney (UTS).</div><div class='team-contact'>pichaya.viwatassawin@student.uts.edu.au</div></div>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
